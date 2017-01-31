@@ -8,7 +8,13 @@ import time
 import random
 import re
 from bs4 import BeautifulSoup
+from chatterbot import ChatBot
+from chatterbot.trainers import ChatterBotCorpusTrainer
 
+deepThought = ChatBot("deepThought", trainer='chatterbot.trainers.ChatterBotCorpusTrainer')
+#deepThought.set_trainer(ChatterBotCorpusTrainer)
+# 使用中文语料库训练它
+deepThought.train("chatterbot.corpus.chinese")  # 语料库
 def getmsg():
     lilist = []
     strslist = []
@@ -45,7 +51,7 @@ def text_reply(msg):
 
 
 
-@itchat.msg_register('Text', isGroupChat=True)
+@itchat.msg_register(itchat.content.TEXT, isGroupChat=True)
 def text_replys(msg):
     if str(msg['Text']) in [u'开始']:
       itchat.send(u'输入 碰运气 看看 ，满分100', msg['FromUserName'])
