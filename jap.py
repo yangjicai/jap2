@@ -15,7 +15,9 @@ deepThought = ChatBot("deepThought", trainer='chatterbot.trainers.ChatterBotCorp
 #deepThought.set_trainer(ChatterBotCorpusTrainer)
 # 使用中文语料库训练它
 deepThought.train("chatterbot.corpus.chinese")  # 语料库
-def getmsg():
+
+
+def getMsgList():
     lilist = []
     strslist = []
     url = "http://www.v5jp.com/html/fuxi/fuxi001_"
@@ -38,37 +40,46 @@ def getmsg():
         strslist.append(strs)
 
     return strslist
-q = getmsg()
 
 
+q = getMsgList()
+WIFE = 'XXXX'
+CHATROOMNAME = "XXXX"
+
+#msg form mywife
 @itchat.msg_register(itchat.content.TEXT)
 def text_reply(msg):
-    print(msg)
-    print(msg['Text'])
-    print(msg['FromUserName'])
-    if str(msg['Text']) in [u'语法']:
-       itchat.send('%s: %s' % (msg['Type'], msg['Text']), 'filehelper')
+    if WIFE in msg['FromUserName']:
+        if u'语法' in msg['Text']:
+           tempstr = msg['Text']
+           num = [int(s) for s in tempstr.split() if s.isdigit()]
+           if len(num) > 0:
+               itchat.send(str(q[num[0] + 1]), WIFE)
+           else:
+               itchat.send(str(q[random.randrange(len(q))]), WIFE)
 
-
-
+#msgform
 @itchat.msg_register(itchat.content.TEXT, isGroupChat=True)
 def text_replys(msg):
-    if str(msg['Text']) in [u'开始']:
-      itchat.send(u'输入 碰运气 看看 ，满分100', msg['FromUserName'])
-    elif str(msg['Text']) in [u'碰运气']:
-      itchat.send(str(random.randrange(100)), msg['FromUserName'])
-    elif str(msg['Text']) in [u'语法']:
-      itchat.send(str(q[random.randrange(len(q))]), msg['FromUserName'])
-    elif str(msg['Text']) in [u'美女']:
-      itchat.send_image(u'/home/yangjc/图片/' + str(random.choice(os.listdir("/home/yangjc/图片/"))),msg['FromUserName'])
+    taget_chatroom = itchat.search_chatrooms(CHATROOMNAME)
+    if taget_chatroom is None:
+        print(u'没有找到群聊：' + CHATROOMNAME)
+
+    chatroom_name = taget_chatroom[0]['UserName']
+
+    print(chatroom_name)
+    print(msg['FromUserName'])
+    if chatroom_name in msg['FromUserName']:
+        if [u'开始'] in msg['Text']:
+          itchat.send(u'输入 碰运气 看看 ，满分100', msg['FromUserName'])
+        elif u'碰运气' in msg['Text']:
+          itchat.send(str(random.randrange(100)), msg['FromUserName'])
+        elif u'语法' in msg['Text']:
+          itchat.send(str(q[random.randrange(len(q))]), msg['FromUserName'])
+        elif u'美女' in msg['Text']:
+          itchat.send_image(u'/home/yangjc/图片/' + str(random.choice(os.listdir("/home/yangjc/图片/"))),msg['FromUserName'])
 
 
 itchat.auto_login(enableCmdQR=2,hotReload=True)
 itchat.run(debug=True)
-'''
 
-for i in range(len(q)):
-    msgs = q[i]
-    itchat.send(msgs, toUserName='filehelper')
-    time.sleep(5)
-'''
