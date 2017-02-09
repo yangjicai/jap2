@@ -3,6 +3,7 @@
 import xml.etree.ElementTree as etree
 import requests
 import random
+import pymysql
 import re
 from bs4 import BeautifulSoup
 
@@ -60,23 +61,7 @@ def getMsgList():
 
     return strslist
 
-
-
-def getimg():
-    imgs = requests.get("http://meinv.tuku.com/index_" + str(random.randint(2,49)) + ".html" )
-    soup = BeautifulSoup(imgs.text,"html.parser")
-    divs = soup.find_all("div",attrs={'class':'pic'})
-    sub = divs[random.randrange(len(divs))].find('a')
-    url = sub['href']
-    r = requests.get(url)
-    soup = BeautifulSoup(r.text,"html.parser")
-    bigpic = soup.find("img",attrs={'id':'bigPic'})
-    r = requests.get(bigpic['src'])
-    fp = open("/tmp/now.jpg", 'wb')
-    fp.write(r.content)
-    fp.close()
-
-def getbeauty():
+def oldgetbeauty():
     url = 'https://moonhug.com/category/hot-sexy-asian-girls/page/' + str(random.randint(1, 80))
     response = requests.get(url)
     bs4 = BeautifulSoup(response.text,"html.parser")
@@ -86,12 +71,64 @@ def getbeauty():
     print(url)
     response = requests.get(url)
     bs4 = BeautifulSoup(response.text, "html.parser")
-    alist = bs4.find_all('div',attrs={'class':'entry-content'})[0].find_all("a")
+    alist = bs4.find('div',attrs={'class':'entry-content'}).find_all("img")
 
-    linklist = [ link for link in [a['href'] for a in alist if a.find('img')] if link not in ['http://lp.moonhug.com']]
-    print(linklist)
-    url = linklist[random.randint(0, len(linklist)-1)]
+    linklist = [ link for link in [a['src'] for a in alist ] if link not in ['https://moonhug.com/wp-content/themes/annina/ad/cpaimg/63.jpg']]
+    if len(linklist)-1 > 0:
+        url = linklist[random.randint(0, len(linklist)-1)]
+    else:
+        url = 'https://pic.moonhug.com/uploads/2014/09/rosimm-985-001.jpg'
+
     imgfile = requests.get(url)
     fp = open("/tmp/now.jpg", 'wb')
     fp.write(imgfile.content)
     fp.close()
+
+def getyufa():
+    try:
+        conn = pymysql.connect('192.168.11.2', 'weixin', 'weixin', 'weixin', charset='utf8')
+    except:
+        print("I am unable to connect to the database.")
+    cur = conn.cursor()
+    cur.execute("select * from yufalist")
+    rows = cur.fetchall()
+    yufa = rows[random.randrange(0,len(rows))][1]
+
+    cur.close()
+    if conn is not None:
+        conn.close()
+    return yufa
+
+
+def getbeauty(filename):
+    try:
+        conn = pymysql.connect('192.168.11.2', 'weixin', 'weixin', 'weixin', charset='utf8')
+    except:
+        print("I am unable to connect to the database.")
+    cur = conn.cursor()
+    cur.execute("select src from imglist where id = {}".format(random.randint(1,80000)))
+    rows = cur.fetchone()
+    url = rows[0]
+    imgfile = requests.get(url)
+    fp = open(filename, 'wb')
+    fp.write(imgfile.content)
+    fp.close()
+    cur.close()
+    if conn is not None:
+        conn.close()
+
+
+def gettangshi():
+    try:
+        conn = pymysql.connect('192.168.11.2', 'weixin', 'weixin', 'weixin', charset='utf8')
+    except:
+        print("I am unable to connect to the database.")
+    cur = conn.cursor()
+    cur.execute("select title,author,content from tangshilist where id = {}".format(random.randrange(0,393)))
+    rows = cur.fetchone()
+    shici = '\n'.join(rows)
+
+    cur.close()
+    if conn is not None:
+        conn.close()
+    return shici
