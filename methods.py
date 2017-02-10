@@ -106,7 +106,7 @@ def getbeauty(filename):
     except:
         print("I am unable to connect to the database.")
     cur = conn.cursor()
-    cur.execute("select src from imglist where id = {}".format(random.randint(1,80000)))
+    cur.execute("select links from imglist where id = {}".format(random.randint(1,80000)))
     rows = cur.fetchone()
     url = rows[0]
     imgfile = requests.get(url)
